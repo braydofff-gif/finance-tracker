@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мои финансы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F4EE; --ink:#1E2A28; --line:#D9D4C6;
+  --moss:#4B6A5A; --moss-soft:#E4EAE3;
+  --brick:#9A4B3E; --brick-soft:#F2E2DD;
+  --muted:#7A7566;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#171A18; --ink:#EDEAE0; --line:#33372F;
+    --moss:#8FB79E; --moss-soft:#233028;
+    --brick:#D98E7E; --brick-soft:#3A2622;
+    --muted:#8A8778;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#171A18; --ink:#EDEAE0; --line:#33372F;
+  --moss:#8FB79E; --moss-soft:#233028;
+  --brick:#D98E7E; --brick-soft:#3A2622;
+  --muted:#8A8778;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;
+  min-height:100%;padding:28px 16px 60px;}
+.wrap{max-width:640px;margin:0 auto;}
+h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.9rem;margin:0 0 4px;letter-spacing:-.01em;}
+.sub{color:var(--muted);font-size:.92rem;margin:0 0 24px;}
+.summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;}
+.tile{background:transparent;border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:left;}
+.tile .lbl{font-size:.72rem;color:var(--muted);margin-bottom:4px;}
+.tile .val{font-family:'Fraunces',serif;font-size:1.3rem;font-variant-numeric:tabular-nums;}
+.balance{grid-column:1/-1;background:var(--moss-soft);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
+.balance .val{font-family:'Fraunces',serif;font-size:1.7rem;font-variant-numeric:tabular-nums;}
+section{margin-bottom:26px;}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:10px;}
+.sec-head h2{font-size:1.02rem;font-weight:600;margin:0;}
+.sec-head .total{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem;}
+.row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+.row:last-of-type{border-bottom:none;}
+.row .name{flex:1;outline:none;padding:2px 4px;border-radius:5px;}
+.row .name:focus{background:var(--line);}
+.row .amt{width:110px;text-align:right;font-variant-numeric:tabular-nums;outline:none;padding:2px 4px;border-radius:5px;}
+.row .amt:focus{background:var(--line);}
+.row .del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:2px 6px;line-height:1;}
+.row .del:hover{color:var(--brick);}
+.empty{color:var(--muted);font-size:.88rem;padding:8px 0;}
+.add{display:flex;gap:8px;margin-top:10px;}
+.add input{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:7px;
+  padding:8px 10px;font-family:inherit;font-size:.92rem;}
+.add input[name="n"]{flex:1;}
+.add input[name="a"]{width:110px;font-variant-numeric:tabular-nums;}
+.add button{border:none;border-radius:7px;padding:8px 14px;font-size:.9rem;cursor:pointer;
+  background:var(--ink);color:var(--paper);font-weight:500;}
+.income .sec-head .total{color:var(--moss);}
+.expense .sec-head .total{color:var(--brick);}
+.debt .sec-head .total{color:var(--brick);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Мои финансы</h1>
+  <p class="sub">Доход, расходы и долги — всё в одном месте, хранится только на этом телефоне.</p>
+
+  <div class="summary">
+    <div class="balance">
+      <span class="lbl">Баланс</span>
+      <span class="val" id="balanceVal">0</span>
+    </div>
+    <div class="tile"><div class="lbl">Доход</div><div class="val" id="incTotal">0</div></div>
+    <div class="tile"><div class="lbl">Расход</div><div class="val" id="expTotal">0</div></div>
+    <div class="tile"><div class="lbl">Долги</div><div class="val" id="debtTotal">0</div></div>
+  </div>
+
+  <section class="income" data-key="income">
+    <div class="sec-head"><h2>Доход</h2><span class="total"></span></div>
+    <div class="rows"></div>
+    <form class="add" onsubmit="return addItem(event,'income')">
+      <input name="n" placeholder="Источник (зарплата, подработка…)" required>
+      <input name="a" type="number" step="any" placeholder="Сумма" required>
+      <button type="submit">+</button>
+    </form>
+  </section>
+
+  <section class="expense" data-key="expenses">
+    <div class="sec-head"><h2>Расход</h2><span class="total"></span></div>
+    <div class="rows"></div>
+    <form class="add" onsubmit="return addItem(event,'expenses')">
+      <input name="n" placeholder="Статья (еда, транспорт…)" required>
+      <input name="a" type="number" step="any" placeholder="Сумма" required>
+      <button type="submit">+</button>
+    </form>
+  </section>
+
+  <section class="debt" data-key="debts">
+    <div class="sec-head"><h2>Долги</h2><span class="total"></span></div>
+    <div class="rows"></div>
+    <form class="add" onsubmit="return addItem(event,'debts')">
+      <input name="n" placeholder="Кому/кто (или за что)" required>
+      <input name="a" type="number" step="any" placeholder="Сумма" required>
+      <button type="submit">+</button>
+    </form>
+  </section>
+</div>
+
+<script>
+const KEY='finance-tracker-v1';
+let state={income:[],expenses:[],debts:[]};
+try{
+  const raw=localStorage.getItem(KEY);
+  if(raw) state=JSON.parse(raw);
+}catch(e){}
+
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+function fmt(n){
+  return (Math.round(n*100)/100).toLocaleString('ru-RU');
+}
+function render(){
+  document.querySelectorAll('section').forEach(sec=>{
+    const key=sec.dataset.key;
+    const list=state[key];
+    const rowsEl=sec.querySelector('.rows');
+    rowsEl.innerHTML='';
+    if(!list.length){
+      rowsEl.innerHTML='<div class="empty">Пока пусто</div>';
+    }
+    list.forEach((item,i)=>{
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML=`
+        <span class="name" contenteditable="true">${escapeHtml(item.n)}</span>
+        <span class="amt" contenteditable="true">${item.a}</span>
+        <button class="del" title="Удалить">✕</button>`;
+      const nameEl=row.querySelector('.name');
+      const amtEl=row.querySelector('.amt');
+      nameEl.addEventListener('blur',()=>{ item.n=nameEl.textContent.trim()||item.n; save(); updateTotals(); });
+      amtEl.addEventListener('blur',()=>{
+        const v=parseFloat(amtEl.textContent.replace(',','.'));
+        item.a=isNaN(v)?item.a:v;
+        amtEl.textContent=item.a;
+        save(); updateTotals();
+      });
+      row.querySelector('.del').addEventListener('click',()=>{
+        list.splice(i,1); save(); render();
+      });
+      rowsEl.appendChild(row);
+    });
+  });
+  updateTotals();
+}
+function updateTotals(){
+  const incT=state.income.reduce((s,x)=>s+x.a,0);
+  const expT=state.expenses.reduce((s,x)=>s+x.a,0);
+  const debtT=state.debts.reduce((s,x)=>s+x.a,0);
+  document.getElementById('incTotal').textContent=fmt(incT);
+  document.getElementById('expTotal').textContent=fmt(expT);
+  document.getElementById('debtTotal').textContent=fmt(debtT);
+  document.getElementById('balanceVal').textContent=fmt(incT-expT);
+  document.querySelector('.income .total').textContent=fmt(incT);
+  document.querySelector('.expense .total').textContent=fmt(expT);
+  document.querySelector('.debt .total').textContent=fmt(debtT);
+}
+function addItem(e,key){
+  e.preventDefault();
+  const f=e.target;
+  const n=f.n.value.trim();
+  const a=parseFloat(f.a.value);
+  if(!n||isNaN(a)) return false;
+  state[key].push({n,a});
+  save();
+  f.n.value=''; f.a.value=''; f.n.focus();
+  render();
+  return false;
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+render();
+</script>
+</body>
+</html>
